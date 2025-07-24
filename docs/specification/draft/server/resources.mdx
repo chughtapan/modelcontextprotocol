@@ -371,6 +371,113 @@ Git version control integration.
 Custom URI schemes **MUST** be in accordance with [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986),
 taking the above guidance in to account.
 
+## REST Endpoint Type Hints
+
+Resources can include optional type hints to indicate they represent REST endpoints. This is particularly useful for `http://` and `https://` resources that map to REST APIs.
+
+### HTTP Method Hints
+
+Resources can include an `httpMethod` annotation to indicate which HTTP method should be used:
+
+```json
+{
+  "uri": "https://api.example.com/users/123",
+  "name": "Get User",
+  "description": "Retrieve user information",
+  "mimeType": "application/json",
+  "annotations": {
+    "httpMethod": "GET"
+  }
+}
+```
+
+Supported methods: `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`, `"PATCH"`
+
+### Request Body Schemas
+
+For HTTP methods that support request bodies (`POST`, `PUT`, `PATCH`), resources can include a `requestBodySchema` annotation. When a client attempts to read such a resource, the server **SHOULD** initiate an elicitation flow to gather the required data from the user before performing the operation.
+
+Example POST resource with elicitation:
+
+```json
+{
+  "uri": "https://api.example.com/users",
+  "name": "Create User",
+  "description": "Create a new user account",
+  "mimeType": "application/json",
+  "annotations": {
+    "httpMethod": "POST",
+    "requestBodySchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User's full name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User's email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user", "guest"],
+          "description": "User's role"
+        }
+      },
+      "required": ["name", "email"]
+    }
+  }
+}
+```
+
+#### Elicitation Flow for REST Resources
+
+When reading a resource with `requestBodySchema`:
+
+1. Client sends `resources/read` request
+2. Server initiates elicitation via `elicitation/create` to gather request body data
+3. Client responds with user-provided values
+4. Server performs the HTTP operation with the elicited data as the request body
+5. Server returns the operation result as resource contents
+
+### Resource Templates with REST Hints
+
+Resource templates can combine URI parameters with REST hints:
+
+```json
+{
+  "uriTemplate": "https://api.example.com/users/{id}",
+  "name": "Update User",
+  "description": "Update user information",
+  "mimeType": "application/json",
+  "annotations": {
+    "httpMethod": "PUT",
+    "requestBodySchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Updated name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Updated email"
+        }
+      }
+    }
+  }
+}
+```
+
+### Implementation Notes
+
+- All REST hints are optional and maintain backward compatibility
+- Servers **MAY** perform REST operations when resources are read
+- The `requestBodySchema` uses the same format as [elicitation schemas](/specification/draft/client/elicitation)
+- Clients that don't support elicitation can still read GET resources normally
+
 ## Error Handling
 
 Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
