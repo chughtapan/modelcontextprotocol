@@ -640,6 +640,32 @@
             ],
             "type": "object"
         },
+        "ElicitationObjectSchema": {
+            "description": "Schema for elicitation-style object structures.\nOnly allows flat objects with primitive-typed properties.",
+            "properties": {
+                "properties": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/PrimitiveSchemaDefinition"
+                    },
+                    "type": "object"
+                },
+                "required": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "type": {
+                    "const": "object",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "properties",
+                "type"
+            ],
+            "type": "object"
+        },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
@@ -1771,7 +1797,7 @@
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
+                    "$ref": "#/definitions/ResourceAnnotations",
                     "description": "Optional annotations for the client."
                 },
                 "description": {
@@ -1806,6 +1832,66 @@
             ],
             "type": "object"
         },
+        "ResourceAnnotations": {
+            "description": "Extended annotations for resources that may represent REST endpoints.\nAll fields are optional to maintain backward compatibility.",
+            "properties": {
+                "audience": {
+                    "description": "Describes who the intended customer of this object or data is.\n\nIt can include multiple entries to indicate content useful for multiple audiences (e.g., `[\"user\", \"assistant\"]`).",
+                    "items": {
+                        "$ref": "#/definitions/Role"
+                    },
+                    "type": "array"
+                },
+                "httpMethod": {
+                    "description": "Optional hint about the HTTP method this resource supports.\nWhen present, indicates this resource represents a REST endpoint.",
+                    "enum": [
+                        "DELETE",
+                        "GET",
+                        "PATCH",
+                        "POST",
+                        "PUT"
+                    ],
+                    "type": "string"
+                },
+                "lastModified": {
+                    "description": "The moment the resource was last modified, as an ISO 8601 formatted string.\n\nShould be an ISO 8601 formatted string (e.g., \"2025-01-12T15:00:58Z\").\n\nExamples: last activity timestamp in an open file, timestamp when the resource\nwas attached, etc.",
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Describes how important this data is for operating the server.\n\nA value of 1 means \"most important,\" and indicates that the data is\neffectively required, while 0 means \"least important,\" and indicates that\nthe data is entirely optional.",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "type": "number"
+                },
+                "requestBodySchema": {
+                    "description": "Optional schema for request body elicitation.\nUsed with POST, PUT, or PATCH methods to collect structured input from the user.\nUses the same schema format as elicitation requests.",
+                    "properties": {
+                        "properties": {
+                            "additionalProperties": {
+                                "$ref": "#/definitions/PrimitiveSchemaDefinition"
+                            },
+                            "type": "object"
+                        },
+                        "required": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "type": {
+                            "const": "object",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "properties",
+                        "type"
+                    ],
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
         "ResourceContents": {
             "description": "The contents of a specific resource or sub-resource.",
             "properties": {
@@ -1838,7 +1924,7 @@
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
+                    "$ref": "#/definitions/ResourceAnnotations",
                     "description": "Optional annotations for the client."
                 },
                 "description": {
@@ -1911,7 +1997,7 @@
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
+                    "$ref": "#/definitions/ResourceAnnotations",
                     "description": "Optional annotations for the client."
                 },
                 "description": {

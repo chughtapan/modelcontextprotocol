@@ -527,7 +527,7 @@ export interface Resource extends BaseMetadata {
   /**
    * Optional annotations for the client.
    */
-  annotations?: Annotations;
+  annotations?: ResourceAnnotations;
 
   /**
    * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
@@ -568,7 +568,7 @@ export interface ResourceTemplate extends BaseMetadata {
   /**
    * Optional annotations for the client.
    */
-  annotations?: Annotations;
+  annotations?: ResourceAnnotations;
 
   /**
    * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
@@ -1074,6 +1074,25 @@ export interface Annotations {
   lastModified?: string;
 }
 
+/**
+ * Extended annotations for resources that may represent REST endpoints.
+ * All fields are optional to maintain backward compatibility.
+ */
+export interface ResourceAnnotations extends Annotations {
+  /**
+   * Optional hint about the HTTP method this resource supports.
+   * When present, indicates this resource represents a REST endpoint.
+   */
+  httpMethod?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+  /**
+   * Optional schema for request body elicitation.
+   * Used with POST, PUT, or PATCH methods to collect structured input from the user.
+   * Uses the same schema format as elicitation requests.
+   */
+  requestBodySchema?: ElicitationObjectSchema;
+}
+
 export type ContentBlock =
   | TextContent
   | ImageContent
@@ -1398,13 +1417,7 @@ export interface ElicitRequest extends Request {
      * A restricted subset of JSON Schema.
      * Only top-level properties are allowed, without nesting.
      */
-    requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
-    };
+    requestedSchema: ElicitationObjectSchema;
   };
 }
 
@@ -1417,6 +1430,18 @@ export type PrimitiveSchemaDefinition =
   | NumberSchema
   | BooleanSchema
   | EnumSchema;
+
+/**
+ * Schema for elicitation-style object structures.
+ * Only allows flat objects with primitive-typed properties.
+ */
+export type ElicitationObjectSchema = {
+  type: "object";
+  properties: {
+    [key: string]: PrimitiveSchemaDefinition;
+  };
+  required?: string[];
+};
 
 export interface StringSchema {
   type: "string";
