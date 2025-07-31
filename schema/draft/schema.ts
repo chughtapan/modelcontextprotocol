@@ -26,6 +26,16 @@ export type ProgressToken = string | number;
  */
 export type Cursor = string;
 
+/**
+ * A string type that represents a valid resource URI.
+ * Clients SHOULD validate that the URI matches a known resource
+ * from resources/list or conforms to a known ResourceTemplate.
+ * 
+ * Tools can use format: "resource-uri" in their JSON schemas to
+ * indicate that a string parameter expects a ResourceUri.
+ */
+export type ResourceUri = string;
+
 /** @internal */
 export interface Request {
   method: string;
@@ -527,7 +537,7 @@ export interface Resource extends BaseMetadata {
   /**
    * Optional annotations for the client.
    */
-  annotations?: Annotations;
+  annotations?: ResourceAnnotations;
 
   /**
    * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
@@ -568,7 +578,7 @@ export interface ResourceTemplate extends BaseMetadata {
   /**
    * Optional annotations for the client.
    */
-  annotations?: Annotations;
+  annotations?: ResourceAnnotations;
 
   /**
    * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
@@ -1072,6 +1082,21 @@ export interface Annotations {
    * was attached, etc.
    */
   lastModified?: string;
+}
+
+/**
+ * Resource-specific annotations that extend the base Annotations.
+ */
+export interface ResourceAnnotations extends Annotations {
+  /**
+   * Indicates whether this resource represents a reference to an external entity
+   * (e.g., HTTP endpoint, cloud resource, database table) rather than containing
+   * the actual data.
+   * 
+   * When true, resources/read should return metadata about the reference
+   * rather than attempting to fetch external content.
+   */
+  reference?: boolean;
 }
 
 export type ContentBlock =
