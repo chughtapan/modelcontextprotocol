@@ -219,15 +219,6 @@ export interface ClientCapabilities {
    */
   experimental?: { [key: string]: object };
   /**
-   * Present if the client supports listing roots.
-   */
-  roots?: {
-    /**
-     * Whether the client supports notifications for changes to the roots list.
-     */
-    listChanged?: boolean;
-  };
-  /**
    * Present if the client supports sampling from an LLM.
    */
   sampling?: object;
@@ -245,6 +236,10 @@ export interface ServerCapabilities {
    * Experimental, non-standard capabilities that the server supports.
    */
   experimental?: { [key: string]: object };
+  /**
+   * Present if the server supports accepting roots from the client.
+   */
+  roots?: object;
   /**
    * Present if the server supports sending log messages to the client.
    */
@@ -1321,29 +1316,20 @@ export interface PromptReference extends BaseMetadata {
 
 /* Roots */
 /**
- * Sent from the server to request a list of root URIs from the client. Roots allow
- * servers to ask for specific directories or files to operate on. A common example
- * for roots is providing a set of repositories or directories a server should operate
- * on.
+ * Sent from the client to the server to set the root directories or files that the server can operate on.
+ * This replaces the entire list of roots with the new set provided.
+ * The server responds with EmptyResult to acknowledge the roots have been set.
  *
- * This request is typically used when the server needs to understand the file system
- * structure or access specific locations that the client has permission to read from.
- *
- * @category roots/list
+ * @category roots/set
  */
-export interface ListRootsRequest extends Request {
-  method: "roots/list";
-}
-
-/**
- * The client's response to a roots/list request from the server.
- * This result contains an array of Root objects, each representing a root directory
- * or file that the server can operate on.
- *
- * @category roots/list
- */
-export interface ListRootsResult extends Result {
-  roots: Root[];
+export interface SetRootsRequest extends Request {
+  method: "roots/set";
+  params: {
+    /**
+     * The new list of roots to set. This replaces any existing roots.
+     */
+    roots: Root[];
+  };
 }
 
 /**
@@ -1369,17 +1355,6 @@ export interface Root {
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
-}
-
-/**
- * A notification from the client to the server, informing it that the list of roots has changed.
- * This notification should be sent whenever the client adds, removes, or modifies any root.
- * The server should then request an updated list of roots using the ListRootsRequest.
- *
- * @category notifications/roots/list_changed
- */
-export interface RootsListChangedNotification extends Notification {
-  method: "notifications/roots/list_changed";
 }
 
 /**
@@ -1486,20 +1461,19 @@ export type ClientRequest =
   | SubscribeRequest
   | UnsubscribeRequest
   | CallToolRequest
-  | ListToolsRequest;
+  | ListToolsRequest
+  | SetRootsRequest;
 
 /** @internal */
 export type ClientNotification =
   | CancelledNotification
   | ProgressNotification
-  | InitializedNotification
-  | RootsListChangedNotification;
+  | InitializedNotification;
 
 /** @internal */
 export type ClientResult =
   | EmptyResult
   | CreateMessageResult
-  | ListRootsResult
   | ElicitResult;
 
 /* Server messages */
@@ -1507,7 +1481,6 @@ export type ClientResult =
 export type ServerRequest =
   | PingRequest
   | CreateMessageRequest
-  | ListRootsRequest
   | ElicitRequest;
 
 /** @internal */
