@@ -244,16 +244,6 @@
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
                 },
-                "roots": {
-                    "description": "Present if the client supports listing roots.",
-                    "properties": {
-                        "listChanged": {
-                            "description": "Whether the client supports notifications for changes to the roots list.",
-                            "type": "boolean"
-                        }
-                    },
-                    "type": "object"
-                },
                 "sampling": {
                     "additionalProperties": true,
                     "description": "Present if the client supports sampling from an LLM.",
@@ -273,9 +263,6 @@
                 },
                 {
                     "$ref": "#/definitions/ProgressNotification"
-                },
-                {
-                    "$ref": "#/definitions/RootsListChangedNotification"
                 }
             ]
         },
@@ -319,6 +306,12 @@
                 },
                 {
                     "$ref": "#/definitions/CompleteRequest"
+                },
+                {
+                    "$ref": "#/definitions/SetRootsRequest"
+                },
+                {
+                    "$ref": "#/definitions/ListRootsRequest"
                 }
             ]
         },
@@ -329,9 +322,6 @@
                 },
                 {
                     "$ref": "#/definitions/CreateMessageResult"
-                },
-                {
-                    "$ref": "#/definitions/ListRootsResult"
                 },
                 {
                     "$ref": "#/definitions/ElicitResult"
@@ -1334,7 +1324,7 @@
             "type": "object"
         },
         "ListRootsRequest": {
-            "description": "Sent from the server to request a list of root URIs from the client. Roots allow\nservers to ask for specific directories or files to operate on. A common example\nfor roots is providing a set of repositories or directories a server should operate\non.\n\nThis request is typically used when the server needs to understand the file system\nstructure or access specific locations that the client has permission to read from.",
+            "description": "Sent from the client to query the list of root URIs currently set on the server.\nThe server responds with the list of roots that were previously set via SetRootsRequest.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1373,7 +1363,7 @@
             "type": "object"
         },
         "ListRootsResult": {
-            "description": "The client's response to a roots/list request from the server.\nThis result contains an array of Root objects, each representing a root directory\nor file that the server can operate on.",
+            "description": "The server's response to a roots/list request from the client.\nThis result contains an array of Root objects representing the root directories\nor files currently configured on the server.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -2265,35 +2255,6 @@
             ],
             "type": "object"
         },
-        "RootsListChangedNotification": {
-            "description": "A notification from the client to the server, informing it that the list of roots has changed.\nThis notification should be sent whenever the client adds, removes, or modifies any root.\nThe server should then request an updated list of roots using the ListRootsRequest.",
-            "properties": {
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "notifications/roots/list_changed",
-                    "type": "string"
-                },
-                "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
-                }
-            },
-            "required": [
-                "jsonrpc",
-                "method"
-            ],
-            "type": "object"
-        },
         "SamplingMessage": {
             "description": "Describes a message issued to or received from an LLM API.",
             "properties": {
@@ -2368,6 +2329,12 @@
                     },
                     "type": "object"
                 },
+                "roots": {
+                    "additionalProperties": true,
+                    "description": "Present if the server supports accepting roots from the client.",
+                    "properties": {},
+                    "type": "object"
+                },
                 "tools": {
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
@@ -2415,9 +2382,6 @@
                     "$ref": "#/definitions/CreateMessageRequest"
                 },
                 {
-                    "$ref": "#/definitions/ListRootsRequest"
-                },
-                {
                     "$ref": "#/definitions/ElicitRequest"
                 }
             ]
@@ -2453,6 +2417,9 @@
                 },
                 {
                     "$ref": "#/definitions/CompleteResult"
+                },
+                {
+                    "$ref": "#/definitions/ListRootsResult"
                 }
             ]
         },
@@ -2486,6 +2453,35 @@
             "required": [
                 "id",
                 "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "SetRootsRequest": {
+            "description": "Sent from the client to the server to set the root directories or files that the server can operate on.\nThis replaces the entire list of roots with the new set provided.\nThe server responds with EmptyResult to acknowledge the roots have been set.",
+            "properties": {
+                "method": {
+                    "const": "roots/set",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "roots": {
+                            "description": "The new list of roots to set. This replaces any existing roots.",
+                            "items": {
+                                "$ref": "#/definitions/Root"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "roots"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
                 "method",
                 "params"
             ],
