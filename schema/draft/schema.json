@@ -295,6 +295,9 @@
                 },
                 {
                     "$ref": "#/definitions/SetRootsRequest"
+                },
+                {
+                    "$ref": "#/definitions/ListRootsRequest"
                 }
             ]
         },
@@ -1170,6 +1173,56 @@
             },
             "required": [
                 "resources"
+            ],
+            "type": "object"
+        },
+        "ListRootsRequest": {
+            "description": "Sent from the client to query the list of root URIs currently set on the server.\nThe server responds with the list of roots that were previously set via SetRootsRequest.",
+            "properties": {
+                "method": {
+                    "const": "roots/list",
+                    "type": "string"
+                },
+                "params": {
+                    "additionalProperties": {},
+                    "properties": {
+                        "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "properties": {
+                                "progressToken": {
+                                    "$ref": "#/definitions/ProgressToken",
+                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListRootsResult": {
+            "description": "The server's response to a roots/list request from the client.\nThis result contains an array of Root objects representing the root directories\nor files currently configured on the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "roots": {
+                    "items": {
+                        "$ref": "#/definitions/Root"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "roots"
             ],
             "type": "object"
         },
@@ -2123,6 +2176,9 @@
                 },
                 {
                     "$ref": "#/definitions/CompleteResult"
+                },
+                {
+                    "$ref": "#/definitions/ListRootsResult"
                 }
             ]
         },

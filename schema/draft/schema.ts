@@ -1333,6 +1333,27 @@ export interface SetRootsRequest extends Request {
 }
 
 /**
+ * Sent from the client to query the list of root URIs currently set on the server.
+ * The server responds with the list of roots that were previously set via SetRootsRequest.
+ *
+ * @category roots/list
+ */
+export interface ListRootsRequest extends Request {
+  method: "roots/list";
+}
+
+/**
+ * The server's response to a roots/list request from the client.
+ * This result contains an array of Root objects representing the root directories
+ * or files currently configured on the server.
+ *
+ * @category roots/list
+ */
+export interface ListRootsResult extends Result {
+  roots: Root[];
+}
+
+/**
  * Represents a root directory or file that the server can operate on.
  */
 export interface Root {
@@ -1462,7 +1483,8 @@ export type ClientRequest =
   | UnsubscribeRequest
   | CallToolRequest
   | ListToolsRequest
-  | SetRootsRequest;
+  | SetRootsRequest
+  | ListRootsRequest;
 
 /** @internal */
 export type ClientNotification =
@@ -1504,4 +1526,5 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
-  | ListToolsResult;
+  | ListToolsResult
+  | ListRootsResult;
