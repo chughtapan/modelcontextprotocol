@@ -126,6 +126,13 @@
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "tools/call",
                     "type": "string"
@@ -147,6 +154,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -185,6 +194,10 @@
         "CancelledNotification": {
             "description": "This notification can be sent by either side to indicate that it is cancelling a previously-issued request.\n\nThe request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.\n\nThis notification indicates that the result will be unused, so any associated processing SHOULD cease.\n\nA client MUST NOT attempt to cancel its `initialize` request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/cancelled",
                     "type": "string"
@@ -207,6 +220,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -317,6 +331,13 @@
         "CompleteRequest": {
             "description": "A request from the client to the server, to ask for completion options.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "completion/complete",
                     "type": "string"
@@ -373,6 +394,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -437,6 +460,13 @@
         "CreateMessageRequest": {
             "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "sampling/createMessage",
                     "type": "string"
@@ -453,7 +483,7 @@
                             "type": "string"
                         },
                         "maxTokens": {
-                            "description": "The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.",
+                            "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
                             "type": "integer"
                         },
                         "messages": {
@@ -494,6 +524,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -546,6 +578,13 @@
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "elicitation/create",
                     "type": "string"
@@ -591,6 +630,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -668,6 +709,9 @@
         },
         "EnumSchema": {
             "properties": {
+                "default": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -697,9 +741,36 @@
             ],
             "type": "object"
         },
+        "Error": {
+            "properties": {
+                "code": {
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "prompts/get",
                     "type": "string"
@@ -725,6 +796,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -752,6 +825,44 @@
             "required": [
                 "messages"
             ],
+            "type": "object"
+        },
+        "Icon": {
+            "description": "An optionally-sized icon that can be displayed in a user interface.",
+            "properties": {
+                "mimeType": {
+                    "description": "Optional MIME type override if the source MIME type is missing or generic.\nFor example: `\"image/png\"`, `\"image/jpeg\"`, or `\"image/svg+xml\"`.",
+                    "type": "string"
+                },
+                "sizes": {
+                    "description": "Optional array of strings that specify sizes at which the icon can be used.\nEach string should be in WxH format (e.g., `\"48x48\"`, `\"96x96\"`) or `\"any\"` for scalable formats like SVG.\n\nIf not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "src": {
+                    "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "src"
+            ],
+            "type": "object"
+        },
+        "Icons": {
+            "description": "Base interface to add `icons` property.",
+            "properties": {
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                }
+            },
             "type": "object"
         },
         "ImageContent": {
@@ -788,8 +899,15 @@
             "type": "object"
         },
         "Implementation": {
-            "description": "Describes the name and version of an MCP implementation, with an optional title for UI representation.",
+            "description": "Describes the MCP implementation",
             "properties": {
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -799,6 +917,11 @@
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": "uri",
                     "type": "string"
                 }
             },
@@ -811,6 +934,13 @@
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "initialize",
                     "type": "string"
@@ -837,6 +967,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -875,6 +1007,10 @@
         "InitializedNotification": {
             "description": "This notification is sent from the client to the server after initialization has finished.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/initialized",
                     "type": "string"
@@ -892,6 +1028,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -900,24 +1037,7 @@
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
                 "error": {
-                    "properties": {
-                        "code": {
-                            "description": "The error type that occurred.",
-                            "type": "integer"
-                        },
-                        "data": {
-                            "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
-                        },
-                        "message": {
-                            "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "code",
-                        "message"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/Error"
                 },
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1041,6 +1161,13 @@
         "ListPromptsRequest": {
             "description": "Sent from the client to request a list of prompts and prompt templates the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "prompts/list",
                     "type": "string"
@@ -1056,6 +1183,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1087,6 +1216,13 @@
         "ListResourceTemplatesRequest": {
             "description": "Sent from the client to request a list of resource templates the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/templates/list",
                     "type": "string"
@@ -1102,6 +1238,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1133,6 +1271,13 @@
         "ListResourcesRequest": {
             "description": "Sent from the client to request a list of resources the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/list",
                     "type": "string"
@@ -1148,6 +1293,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1179,6 +1326,13 @@
         "ListRootsRequest": {
             "description": "Sent from the client to query the list of root URIs currently set on the server.\nThe server responds with the list of roots that were previously set via SetRootsRequest.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "roots/list",
                     "type": "string"
@@ -1202,6 +1356,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1229,6 +1385,13 @@
         "ListToolsRequest": {
             "description": "Sent from the client to request a list of tools the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "tools/list",
                     "type": "string"
@@ -1244,6 +1407,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1287,8 +1452,12 @@
             "type": "string"
         },
         "LoggingMessageNotification": {
-            "description": "Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.",
+            "description": "JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/message",
                     "type": "string"
@@ -1315,6 +1484,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1385,6 +1555,9 @@
         },
         "NumberSchema": {
             "properties": {
+                "default": {
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1412,6 +1585,13 @@
         },
         "PaginatedRequest": {
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "type": "string"
                 },
@@ -1426,6 +1606,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1447,6 +1629,13 @@
         "PingRequest": {
             "description": "A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "ping",
                     "type": "string"
@@ -1470,6 +1659,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1494,6 +1685,10 @@
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/progress",
                     "type": "string"
@@ -1525,6 +1720,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1555,6 +1751,13 @@
                 "description": {
                     "description": "An optional description of what this prompt provides",
                     "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
@@ -1598,6 +1801,10 @@
         "PromptListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/prompts/list_changed",
                     "type": "string"
@@ -1615,6 +1822,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1660,6 +1868,13 @@
         "ReadResourceRequest": {
             "description": "Sent from the client to the server, to read a specific resource URI.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/read",
                     "type": "string"
@@ -1679,6 +1894,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1762,6 +1979,13 @@
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1829,6 +2053,13 @@
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1865,6 +2096,10 @@
         "ResourceListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/resources/list_changed",
                     "type": "string"
@@ -1882,6 +2117,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1948,6 +2184,10 @@
         "ResourceUpdatedNotification": {
             "description": "A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/resources/updated",
                     "type": "string"
@@ -1967,6 +2207,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -2185,6 +2426,13 @@
         "SetLevelRequest": {
             "description": "A request from the client to the server, to enable or adjust logging.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "logging/setLevel",
                     "type": "string"
@@ -2203,6 +2451,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -2239,6 +2489,9 @@
         },
         "StringSchema": {
             "properties": {
+                "default": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2273,6 +2526,13 @@
         "SubscribeRequest": {
             "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/subscribe",
                     "type": "string"
@@ -2292,6 +2552,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -2366,6 +2628,13 @@
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
                 },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
@@ -2465,6 +2734,10 @@
         "ToolListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/tools/list_changed",
                     "type": "string"
@@ -2482,6 +2755,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -2489,6 +2763,13 @@
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/unsubscribe",
                     "type": "string"
@@ -2508,6 +2789,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
